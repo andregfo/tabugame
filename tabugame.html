@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Treino de Tabuada</title>
+
+<style>
+:root{
+  --bg:#f5f6fa;
+  --card:#fff;
+  --tx:#1d2433;
+  --mut:#6b7385;
+  --pri:#3b5bdb;
+  --ok:#2f9e44;
+  --err:#e03131;
+  --bd:#d9dde8;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px)
+}
+
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171f;
+    --card:#1e2330;
+    --tx:#eef0f6;
+    --mut:#9aa3b8;
+    --pri:#748ffc;
+    --ok:#51cf66;
+    --err:#ff6b6b;
+    --bd:#32394d
+  }
+}
+
+:root[data-theme="dark"]{
+  --bg:#14171f;
+  --card:#1e2330;
+  --tx:#eef0f6;
+  --mut:#9aa3b8;
+  --pri:#748ffc;
+  --ok:#51cf66;
+  --err:#ff6b6b;
+  --bd:#32394d
+}
+
+*{
+  box-sizing:border-box
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--tx);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding:16px
+}
+
+.app{
+  width:100%;
+  max-width:440px
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--bd);
+  border-radius:18px;
+  padding:24px;
+  text-align:center;
+  box-shadow:0 4px 18px rgba(0,0,0,.08)
+}
+
+h1{
+  font-size:1.3rem;
+  margin:0 0 8px
+}
+
+p{
+  color:var(--mut);
+  line-height:1.5
+}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:12px;
+  color:var(--mut);
+  font-size:.95rem
+}
+
+.top b{
+  color:var(--tx)
+}
+
+.bar{
+  height:8px;
+  background:var(--bd);
+  border-radius:6px;
+  overflow:hidden;
+  margin-bottom:20px
+}
+
+.bar i{
+  display:block;
+  height:100%;
+  width:100%;
+  background:var(--pri);
+  transform-origin:left
+}
+
+/* =========================================================
+   TEMPO DE RESPOSTA
+   Altere esta variável no JavaScript abaixo.
+   5000 = 5 segundos
+   3000 = 3 segundos
+   10000 = 10 segundos
+   ========================================================= */
+
+.bar i.run{
+  animation:shrink 5s linear forwards
+}
+
+@keyframes shrink{
+  from{transform:scaleX(1)}
+  to{transform:scaleX(0)}
+}
+
+.q{
+  font-size:3.2rem;
+  font-weight:700;
+  margin:8px 0 24px
+}
+
+.opts{
+  display:grid;
+  gap:12px
+}
+
+button{
+  font:inherit;
+  cursor:pointer;
+  border-radius:12px;
+  border:2px solid var(--bd);
+  background:var(--card);
+  color:var(--tx);
+  padding:14px;
+  font-size:1.5rem;
+  font-weight:600
+}
+
+button:hover:not(:disabled){
+  border-color:var(--pri)
+}
+
+button.ok{
+  background:var(--ok);
+  border-color:var(--ok);
+  color:#fff
+}
+
+button.err{
+  background:var(--err);
+  border-color:var(--err);
+  color:#fff
+}
+
+.pri{
+  background:var(--pri);
+  border-color:var(--pri);
+  color:#fff;
+  font-size:1.1rem
+}
+
+.sec{
+  font-size:1rem;
+  padding:10px 16px
+}
+
+.exit{
+  margin-top:18px;
+  font-size:1rem;
+  padding:10px 20px;
+  color:var(--err);
+  border-color:var(--err)
+}
+
+.row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-top:14px
+}
+
+textarea{
+  width:100%;
+  height:170px;
+  margin-top:12px;
+  border-radius:10px;
+  border:1px solid var(--bd);
+  background:var(--bg);
+  color:var(--tx);
+  padding:10px;
+  font:.85rem/1.4 ui-monospace,Menlo,monospace;
+  resize:vertical
+}
+
+.score{
+  font-size:2.4rem;
+  font-weight:700;
+  color:var(--pri)
+}
+
+.hide{
+  display:none
+}
+
+.status{
+  margin-top:12px;
+  font-size:.9rem;
+  color:var(--mut)
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="app">
+
+  <section id="start" class="card">
+    <h1>Treino de Tabuada</h1>
+
+```
+<p>
+  Tabuadas do 2 ao 9.
+  Você tem <strong>5 segundos</strong> por card.
+  Escolha a resposta certa entre 3 opções.
+</p>
+
+<button class="pri" id="btnStart">
+  Começar
+</button>
+```
+
+  </section>
+
+  <section id="game" class="hide">
+
+```
+<div class="card">
+
+  <div class="top">
+    <span>Acertos: <b id="hits">0</b></span>
+    <span>Erros: <b id="miss">0</b></span>
+  </div>
+
+  <div class="bar">
+    <i id="fill"></i>
+  </div>
+
+  <div class="q" id="q"></div>
+
+  <div class="opts" id="opts"></div>
+
+  <button class="exit" id="btnExit">
+    Sair
+  </button>
+
+</div>
+```
+
+  </section>
+
+  <section id="end" class="card hide">
+
+```
+<h1>Sessão encerrada</h1>
+
+<div class="score" id="final"></div>
+
+<p id="endMsg">
+  O relatório está pronto para ser enviado por e-mail.
+</p>
+
+<textarea id="report" readonly></textarea>
+
+<div class="row">
+
+  <button class="sec" id="btnMail">
+    Enviar e-mail
+  </button>
+
+  <button class="sec" id="btnCopy">
+    Copiar relatório
+  </button>
+
+  <button class="sec pri" id="btnAgain">
+    Treinar de novo
+  </button>
+
+</div>
+
+<div class="status" id="mailStatus"></div>
+```
+
+  </section>
+
+</div>
+
+<!--
+============================================================
+EMAILJS
+============================================================
+
+O EmailJS permite enviar o relatório diretamente do GitHub Pages,
+sem precisar de servidor próprio.
+
+Depois de criar sua conta no EmailJS, preencha:
+
+EMAILJS_SERVICE_ID
+EMAILJS_TEMPLATE_ID
+EMAILJS_PUBLIC_KEY
+
+Enquanto esses campos estiverem vazios, o sistema utilizará
+o cliente de e-mail padrão através do mailto:.
+
+============================================================
+-->
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+<script>
+(function(){
+
+  /* ========================================================
+     CONFIGURAÇÕES
+     ======================================================== */
+
+  var EMAIL = "andregfo@gmail.com";
+
+
+  /*
+     TEMPO DE RESPOSTA
+
+     5000 = 5 segundos
+     3000 = 3 segundos
+     10000 = 10 segundos
+
+     Altere SOMENTE este valor para mudar o tempo.
+  */
+  var LIMIT = 5000;
+
+
+  /*
+     CONFIGURAÇÃO DO EMAILJS
+
+     Substitua os valores abaixo pelos dados da sua conta
+     no EmailJS.
+
+     Exemplo:
+
+     var EMAILJS_SERVICE_ID = "service_xxxxxxx";
+     var EMAILJS_TEMPLATE_ID = "template_xxxxxxx";
+     var EMAILJS_PUBLIC_KEY = "xxxxxxxxxxxx";
+  */
+
+  var EMAILJS_SERVICE_ID = "service_gtlfgh5";
+  var EMAILJS_TEMPLATE_ID = "template_93kt5yt";
+  var EMAILJS_PUBLIC_KEY = "6GUZeG1xV3PesiQwl";
+
+
+  /* ========================================================
+     INICIALIZAÇÃO DO EMAILJS
+     ======================================================== */
+
+  var emailConfigured =
+    EMAILJS_SERVICE_ID !== "" &&
+    EMAILJS_TEMPLATE_ID !== "" &&
+    EMAILJS_PUBLIC_KEY !== "";
+
+
+  if(emailConfigured && typeof emailjs !== "undefined"){
+    emailjs.init({
+      publicKey: EMAILJS_PUBLIC_KEY
+    });
+  }
+
+
+  /* ========================================================
+     VARIÁVEIS DO JOGO
+     ======================================================== */
+
+  var $ = function(id){
+    return document.getElementById(id);
+  };
+
+  var log = [];
+  var hits = 0;
+  var miss = 0;
+  var cur = null;
+  var timer = null;
+  var locked = false;
+  var lastKey = "";
+
+
+  /* ========================================================
+     FUNÇÕES AUXILIARES
+     ======================================================== */
+
+  function rnd(a,b){
+    return Math.floor(Math.random()*(b-a+1))+a;
+  }
+
+
+  function shuffle(a){
+
+    for(var i=a.length-1;i>0;i--){
+
+      var j=rnd(0,i);
+      var t=a[i];
+
+      a[i]=a[j];
+      a[j]=t;
+    }
+
+    return a;
+  }
+
+
+  /* ========================================================
+     CRIA UMA QUESTÃO
+     ======================================================== */
+
+  function makeCard(){
+
+    var a,b,key;
+
+    do{
+
+      a=rnd(2,9);
+      b=rnd(1,10);
+      key=a+"x"+b;
+
+    }while(key===lastKey);
+
+    lastKey=key;
+
+    var ans=a*b;
+    var opts=[ans];
+
+    /*
+      Respostas próximas:
+      produto vizinho ou ±1
+    */
+
+    var near=[
+      a*(b+1),
+      a*(b-1),
+      ans+1,
+      ans-1
+    ].filter(function(v){
+
+      return v>0 && v!==ans;
+
+    });
+
+    var c1=near[rnd(0,near.length-1)];
+
+    opts.push(c1);
+
+    var tries=0;
+
+    while(opts.length<3 && tries++<50){
+
+      var d=[
+        ans+rnd(-a,a),
+        ans+rnd(-10,10),
+        (a+rnd(-1,1))*(b+rnd(-1,1))
+      ][rnd(0,2)];
+
+      if(d>0 && opts.indexOf(d)<0){
+        opts.push(d);
+      }
+    }
+
+    for(var k=1;opts.length<3;k++){
+
+      if(opts.indexOf(ans+k)<0){
+        opts.push(ans+k);
+      }
+    }
+
+    return {
+      a:a,
+      b:b,
+      ans:ans,
+      opts:shuffle(opts)
+    };
+  }
+
+
+  /* ========================================================
+     CONTROLE DAS TELAS
+     ======================================================== */
+
+  function show(id){
+
+    ["start","game","end"].forEach(function(s){
+
+      $(s).classList.toggle(
+        "hide",
+        s!==id
+      );
+
+    });
+  }
+
+
+  /* ========================================================
+     PRÓXIMA QUESTÃO
+     ======================================================== */
+
+  function next(){
+
+    locked=false;
+
+    cur=makeCard();
+
+    $("q").textContent=
+      cur.a+" × "+cur.b;
+
+
+    var box=$("opts");
+
+    box.innerHTML="";
+
+
+    cur.opts.forEach(function(v){
+
+      var btn=document.createElement("button");
+
+      btn.textContent=v;
+
+      btn.dataset.v=v;
+
+      btn.addEventListener(
+        "click",
+        function(){
+          answer(v,btn);
+        }
+      );
+
+      box.appendChild(btn);
+
+    });
+
+
+    /*
+      Reinicia a barra de tempo
+    */
+
+    var f=$("fill");
+
+    f.classList.remove("run");
+
+    void f.offsetWidth;
+
+    f.classList.add("run");
+
+
+    /*
+      Tempo máximo para responder
+    */
+
+    clearTimeout(timer);
+
+    timer=setTimeout(
+      function(){
+        answer(null,null);
+      },
+      LIMIT
+    );
+  }
+
+
+  /* ========================================================
+     PROCESSA A RESPOSTA
+     ======================================================== */
+
+  function answer(v,btn){
+
+    if(locked || !cur){
+      return;
+    }
+
+    locked=true;
+
+    clearTimeout(timer);
+
+    $("fill").classList.remove("run");
+
+
+    var okAns=(v===cur.ans);
+
+
+    log.push({
+      a:cur.a,
+      b:cur.b,
+      ans:cur.ans,
+      given:v,
+      ok:okAns
+    });
+
+
+    if(okAns){
+      hits++;
+    }else{
+      miss++;
+    }
+
+
+    $("hits").textContent=hits;
+    $("miss").textContent=miss;
+
+
+    var btns=$("opts").children;
+
+
+    for(var i=0;i<btns.length;i++){
+
+      btns[i].disabled=true;
+
+      if(+btns[i].dataset.v===cur.ans){
+
+        btns[i].classList.add("ok");
+
+      }
+    }
+
+
+    if(btn && !okAns){
+
+      btn.classList.add("err");
+
+    }
+
+
+    /*
+      Pequena pausa antes da próxima questão
+    */
+
+    setTimeout(
+      next,
+      okAns ? 250 : 900
+    );
+  }
+
+
+  /* ========================================================
+     MONTA O RELATÓRIO
+     ======================================================== */
+
+  function buildReport(){
+
+    var L=[
+      "Treino de Tabuada - "+
+      new Date().toLocaleString("pt-BR"),
+
+      "Acertos: "+
+      hits+
+      " | Erros: "+
+      miss+
+      " | Total: "+
+      log.length,
+
+      ""
+    ];
+
+
+    log.forEach(function(e,i){
+
+      var g=
+        e.given===null
+        ? "sem resposta (tempo esgotado)"
+        : e.given;
+
+
+      L.push(
+        (i+1)+
+        ". "+
+        e.a+
+        " x "+
+        e.b+
+        " = "+
+        e.ans+
+        " | resposta: "+
+        g+
+        " | "+
+        (e.ok ? "ACERTO" : "ERRO")
+      );
+
+    });
+
+
+    return L.join("\n");
+  }
+
+
+  /* ========================================================
+     ENVIO POR MAILTO
+     ======================================================== */
+
+  function mailLink(){
+
+    var body=buildReport();
+
+
+    /*
+      Limitação dos links mailto:
+      alguns clientes/e-mails não aceitam textos muito grandes.
+    */
+
+    if(body.length>1500){
+
+      body=
+        body.slice(0,1500)+
+        "\n\n... (relatório completo: use 'Copiar relatório' no app)";
+    }
+
+
+    return "mailto:"+
+      EMAIL+
+      "?subject="+
+      encodeURIComponent(
+        "Relatório de Tabuada"
+      )+
+      "&body="+
+      encodeURIComponent(body);
+  }
+
+
+  /* ========================================================
+     ENVIO REAL PELO EMAILJS
+     ======================================================== */
+
+  function sendEmail(){
+
+    var body=buildReport();
+
+    var status=$("mailStatus");
+
+    /*
+      Se o EmailJS não estiver configurado,
+      utiliza o cliente de e-mail padrão.
+    */
+
+    if(
+      !emailConfigured ||
+      typeof emailjs==="undefined"
+    ){
+
+      status.textContent=
+        "Abrindo seu cliente de e-mail...";
+
+      window.location.href=mailLink();
+
+      return;
+    }
+
+
+    status.textContent=
+      "Enviando relatório...";
+
+
+    /*
+      Os nomes abaixo devem corresponder
+      às variáveis criadas no template do EmailJS.
+
+      No template, utilize:
+
+      {{to_email}}
+      {{subject}}
+      {{message}}
+    */
+
+    var templateParams={
+
+      to_email:EMAIL,
+
+      subject:
+        "Relatório de Tabuada",
+
+      message:body
+    };
+
+
+    emailjs.send(
+      EMAILJS_SERVICE_ID,
+      EMAILJS_TEMPLATE_ID,
+      templateParams
+    )
+
+    .then(function(){
+
+      status.textContent=
+        "Relatório enviado com sucesso para "+
+        EMAIL+".";
+
+    })
+
+    .catch(function(error){
+
+      console.error(
+        "Erro ao enviar e-mail:",
+        error
+      );
+
+
+      status.textContent=
+        "Não foi possível enviar pelo sistema. "+
+        "Abrindo o cliente de e-mail...";
+
+
+      /*
+        Fallback:
+        abre o cliente de e-mail do usuário.
+      */
+
+      setTimeout(function(){
+
+        window.location.href=mailLink();
+
+      },1000);
+
+    });
+  }
+
+
+  /* ========================================================
+     ENCERRAR TREINO
+     ======================================================== */
+
+  function exit(){
+
+    clearTimeout(timer);
+
+    locked=true;
+
+    cur=null;
+
+
+    $("final").textContent=
+      hits+
+      " acerto"+
+      (hits===1 ? "" : "s")+
+      " de "+
+      log.length;
+
+
+    $("report").value=
+      buildReport();
+
+
+    $("mailStatus").textContent="";
+
+
+    show("end");
+
+
+    /*
+      NÃO enviamos automaticamente.
+      O usuário decide clicando em
+      "Enviar e-mail".
+    */
+  }
+
+
+  /* ========================================================
+     RESET
+     ======================================================== */
+
+  function reset(){
+
+    log=[];
+
+    hits=0;
+
+    miss=0;
+
+    lastKey="";
+
+
+    $("hits").textContent=0;
+
+    $("miss").textContent=0;
+
+    $("mailStatus").textContent="";
+  }
+
+
+  /* ========================================================
+     EVENTOS
+     ======================================================== */
+
+  $("btnStart").addEventListener(
+    "click",
+    function(){
+
+      reset();
+
+      show("game");
+
+      next();
+
+    }
+  );
+
+
+  $("btnExit").addEventListener(
+    "click",
+    exit
+  );
+
+
+  $("btnMail").addEventListener(
+    "click",
+    sendEmail
+  );
+
+
+  $("btnAgain").addEventListener(
+    "click",
+    function(){
+
+      reset();
+
+      show("game");
+
+      next();
+
+    }
+  );
+
+
+  $("btnCopy").addEventListener(
+    "click",
+    function(){
+
+      var t=$("report");
+
+      t.select();
+
+
+      try{
+
+        if(
+          navigator.clipboard &&
+          navigator.clipboard.writeText
+        ){
+
+          navigator.clipboard.writeText(
+            t.value
+          );
+
+        }else{
+
+          document.execCommand("copy");
+
+        }
+
+
+        $("btnCopy").textContent=
+          "Copiado!";
+
+
+        setTimeout(function(){
+
+          $("btnCopy").textContent=
+            "Copiar relatório";
+
+        },2000);
+
+
+      }catch(e){
+
+        $("btnCopy").textContent=
+          "Selecione e copie (Ctrl+C)";
+      }
+    }
+  );
+
+})();
+</script>
+
+</body>
+</html>
